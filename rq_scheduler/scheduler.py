@@ -381,7 +381,9 @@ class Scheduler(object):
                     self.log.info('Waiting for lock...')
 
                 # Time has already elapsed while enqueuing jobs, so don't wait too long.
-                time.sleep(self._interval - (time.time() - start_time))
+                pause = self._interval - (time.time() - start_time)
+                if pause > 0:
+                    time.sleep(pause)
         finally:
             self.remove_lock()
             self.register_death()
