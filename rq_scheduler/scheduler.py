@@ -376,6 +376,7 @@ class Scheduler(object):
         """
 
         self._install_signal_handlers()
+        self.log.info('Starting up RQ scheduler...')
 
         try:
             while True:
