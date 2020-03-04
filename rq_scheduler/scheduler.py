@@ -39,32 +39,6 @@ class Scheduler(object):
         self.queue_class = backend_class(self, 'queue_class',
                                          override=queue_class)
 
-    def register_birth(self):
-        self.log.info('Registering birth')
-        if self.connection.exists(self.scheduler_key) and \
-                not self.connection.hexists(self.scheduler_key, 'death'):
-            raise ValueError("There's already an active RQ scheduler")
-
-        key = self.scheduler_key
-        now = time.time()
-
-        with self.connection.pipeline() as p:
-            p.delete(key)
-            p.hset(key, 'birth', now)
-            # Set scheduler key to expire a few seconds after polling interval
-            # This way, the key will automatically expire if scheduler
-            # quits unexpectedly
-            p.expire(key, int(self._interval) + 10)
-            p.execute()
-
-    def register_death(self):
-        """Registers its own death."""
-        self.log.info('Registering death')
-        with self.connection.pipeline() as p:
-            p.hset(self.scheduler_key, 'death', time.time())
-            p.expire(self.scheduler_key, 60)
-            p.execute()
-
     def acquire_lock(self):
         """
         Acquire lock before scheduling jobs to prevent another scheduler
@@ -96,11 +70,9 @@ class Scheduler(object):
 
         def stop(signum, frame):
             """
-            Register scheduler's death and exit
-            and remove previously acquired lock and exit.
+            Remove previously acquired lock and exit.
             """
             self.log.info('Shutting down RQ scheduler...')
-            self.register_death()
             self.remove_lock()
             raise SystemExit()
 
@@ -403,7 +375,6 @@ class Scheduler(object):
         lower than current time).
         """
 
-        self.register_birth()
         self._install_signal_handlers()
 
         try:
@@ -430,4 +401,3 @@ class Scheduler(object):
                     time.sleep(seconds_until_next_scheduled_run)
         finally:
             self.remove_lock()
-            self.register_death()
