@@ -1,18 +1,20 @@
 # -*- coding: utf-8 -*-
+import sys
+
 from setuptools import setup
-import platform
 
 tests_require = []
-if platform.python_version() < '2.7':
+if sys.version_info < (2, 7):
     tests_require.append('discover==0.4.0')
+
 
 setup(
     name='rq-scheduler',
-    version='0.7.1-dev',
+    version='0.9',
     author='Selwin Ong',
     author_email='selwin.ong@gmail.com',
     packages=['rq_scheduler'],
-    url='https://github.com/ui/rq-scheduler',
+    url='https://github.com/rq/rq-scheduler',
     license='MIT',
     description='Provides job scheduling capabilities to RQ (Redis Queue)',
     long_description=open('README.rst').read(),
@@ -24,7 +26,7 @@ setup(
     ''',
     package_data={'': ['README.rst']},
     tests_require=tests_require,
-    install_requires=['rq>=0.6.0', 'croniter>=0.3.9'] + tests_require,
+    install_requires=['croniter>=0.3.9', 'rq>=0.13'] + tests_require,
     classifiers=[
         'Development Status :: 4 - Beta',
         'Environment :: Console',
@@ -32,10 +34,11 @@ setup(
         'License :: OSI Approved :: MIT License',
         'Operating System :: OS Independent',
         'Programming Language :: Python :: 2',
-        'Programming Language :: Python :: 2.6',
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.3',
+        'Programming Language :: Python :: 3.4',
+        'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
         'Topic :: Software Development :: Libraries :: Python Modules',
     ]
 )
