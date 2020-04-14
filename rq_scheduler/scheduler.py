@@ -1,4 +1,5 @@
 import logging
+import redis_lock
 import signal
 import time
 
@@ -34,10 +35,13 @@ class Scheduler(object):
             self.queue_name = self._queue.name
         self._interval = interval
         self.log = logger
-        self._lock_acquired = False
         self.job_class = backend_class(self, 'job_class', override=job_class)
         self.queue_class = backend_class(self, 'queue_class',
                                          override=queue_class)
+        self._lock = redis_lock.Lock(
+            self.connection, name='rq:scheduler:lock',
+            expire=self._interval+10, auto_renewal=True
+        )
 
     def acquire_lock(self):
         """
@@ -46,21 +50,16 @@ class Scheduler(object):
 
         This function returns True if a lock is acquired. False otherwise.
         """
-        key = '%s_lock' % self.scheduler_key
-        now = time.time()
-        expires = int(self._interval) + 10
-        self._lock_acquired = self.connection.set(
-                key, now, ex=expires, nx=True)
-        return self._lock_acquired
+        return self._lock.acquire(blocking=False)
 
     def remove_lock(self):
         """
         Remove acquired lock.
         """
-        key = '%s_lock' % self.scheduler_key
-
-        if self._lock_acquired:
-            self.connection.delete(key)
+        try:
+            self._lock.release()
+        except redis_lock.NotAcquired:
+            pass
 
     def _install_signal_handlers(self):
         """

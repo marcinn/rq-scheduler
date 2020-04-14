@@ -10,7 +10,7 @@ if sys.version_info < (2, 7):
 
 setup(
     name='rq-scheduler',
-    version='0.9-dev2',
+    version='0.9-dev3',
     author='Selwin Ong',
     author_email='selwin.ong@gmail.com',
     packages=['rq_scheduler'],
@@ -26,7 +26,9 @@ setup(
     ''',
     package_data={'': ['README.rst']},
     tests_require=tests_require,
-    install_requires=['croniter>=0.3.9', 'rq>=0.13'] + tests_require,
+    install_requires=[
+        'croniter>=0.3.9', 'rq>=0.13', 'python-redis-lock>=3.1.0<4.0.0'
+    ] + tests_require,
     classifiers=[
         'Development Status :: 4 - Beta',
         'Environment :: Console',
